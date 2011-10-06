@@ -11,6 +11,7 @@ options
   .option('-c, --clients [clients]', 'The number of total clients', 10)
   .option('-m, --messages [messages]', 'The number of messages to send per sec [0.1]', 0.1)
   .option('-i, --interval [interval]', 'The interval in seconds to accumlate stats', 10)
+  .option('-t, --transport [transport]', 'The transport type to use by the client', 'websocket')
   .parse(process.argv);
 
 util.inherits(LongPollingClient, EventEmitter);
