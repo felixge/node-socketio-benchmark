@@ -1,1 +1,16 @@
-{}
+{
+  "author": "Robin Mehner <robin@coding-robin.de>",
+  "name": "socketio-bench-server",
+  "description": "Small socket.io server bench",
+  "version": "0.0.0",
+  "repository": {
+    "url": ""
+  },
+  "engines": {
+    "node": "~0.4.12"
+  },
+  "dependencies": {
+    "socket.io": "~0.8.4"
+  },
+  "devDependencies": {}
+}
