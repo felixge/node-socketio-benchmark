@@ -10,7 +10,8 @@
     "node": "~0.4.12"
   },
   "dependencies": {
-    "socket.io": "~0.8.4"
+    "socket.io": "~0.8.4",
+    "commander": "~0.2.0"
   },
   "devDependencies": {}
 }
