@@ -5,6 +5,10 @@ var receivedCounter = 0;
 var sockets         = [];
 var io              = require('socket.io').listen(port);
 
+io.configure(function() {
+  io.set('log level', 1);
+});
+
 io.sockets.on('connection', function (socket) {
   sockets.push(socket);
   socket.on('chat.send', function(data) {
