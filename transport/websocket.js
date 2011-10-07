@@ -14,7 +14,7 @@ function WebSocket() {
   this.transport  = 'websocket';
 }
 
-WebSocket.prototype.create = function(host, port) {
+WebSocket.create = function(host, port) {
   var instance = new this();
   instance.port = port;
   instance.host = host;
