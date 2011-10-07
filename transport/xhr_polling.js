@@ -40,6 +40,11 @@ XhrPolling.prototype.disconnect = function() {
   } catch (err) {
     this.emit('error', err);
   }
+
+  //console.error('disconnecting');
+  //this.request('?disconnect', function() {
+    //console.error(arguments);
+  //});
 };
 
 XhrPolling.prototype.handshake = function() {
@@ -68,14 +73,14 @@ XhrPolling.prototype.poll = function() {
     clearTimeout(timeout);
     if (err) return self.emit('error', err);
 
-    response[0] = response[0].replace(/^\?[\d]+\?/, '');
+    var type = response[0].replace(/\?[\d]+\?/, '');
 
-    if (response[0] === '7') {
+    if (type === '7') {
       self.emit('error', new Error('Error: ' + JSON.stringify(response)));
     }
 
     // Connected
-    if (response[0] === '1') {
+    if (type === '1') {
       self.connected = true;
       self.connecting = false;
       self.emit('connect');
@@ -84,14 +89,14 @@ XhrPolling.prototype.poll = function() {
     }
 
     // Event
-    if (response[0] === '5') {
+    if (/5$/.test(type)) {
       var message = JSON.parse(response[3]);
       self.emit('message', message);
       self.poll();
       return;
     }
 
-    self.emit('error', new Error('Not implemented: ' + JSON.stringify(response)));
+    self.emit('error', new Error('Not implemented: ' + type + ': ' + JSON.stringify(response)));
   });
 };
 
@@ -100,8 +105,6 @@ XhrPolling.prototype.request = function(endpoint, cb) {
     cb = endpoint;
     endpoint = '';
   }
-
-  if (endpoint) endpoint = '/' + endpoint;
 
   var session = '';
   if (this.sessionId) {

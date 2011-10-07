@@ -21,7 +21,6 @@ function Benchmark() {
   this.percentile = null;
   this.messageTimeout = 2 * 1000;
 
-  this.connectedCounter = 0;
   this.batches = {};
   this.responseTimes = {};
 }
@@ -55,14 +54,15 @@ Benchmark.prototype.connectClient = function() {
 
 Benchmark.prototype.handleMessage = function(client, message) {
   var time = message.args[0].time;
+  var size = message.args[0].size;
   var batchId = message.args[0].batch;
   var latency = Date.now() - time;
 
   var batch = this.batches[batchId];
   if (!batch) {
     batch = this.batches[batchId] = {
-      connected: this.connectedCounter,
       responseTimes: [],
+      size: size,
     };
 
     batch.timeout = setTimeout(this.analyzeBatch.bind(this, batch), this.messageTimeout);
@@ -81,15 +81,14 @@ Benchmark.prototype.analyzeBatch = function(batch) {
 
   var index = Math.floor(batch.responseTimes.length * this.percentile / 100);
   var responseTime = batch.responseTimes[index];
-  //var errorRate = ((batch.errorCounter / this.clients.length) * 100).toFixed(2);
+  var errorRate = ((batch.size - batch.responseTimes.length) / batch.size * 100).toFixed(2);
 
   console.error(
     '%s percentile response time for %d messages: %d (%d% error rate)',
     this.percentile,
     batch.responseTimes.length,
     responseTime,
-    undefined
-    //errorRate
+    errorRate
   );
 
   this.responseTimes = [];
@@ -97,7 +96,7 @@ Benchmark.prototype.analyzeBatch = function(batch) {
   this.messageCounter = 0;
 };
 
-Benchmark.prototype.handleConnect = function(client, message) {
+Benchmark.prototype.handleConnect = function(client) {
   this.connectedCounter++;
 };
 
