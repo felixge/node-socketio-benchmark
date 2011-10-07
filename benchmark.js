@@ -1,6 +1,7 @@
 var options = require('commander');
 var transports = {
   'xhr-polling': require('./transport/xhr_polling'),
+  'xhr-polling-custom': require('./transport/xhr_polling_custom'),
   'websocket': require('./transport/websocket')
 };
 options
