@@ -68,6 +68,8 @@ XhrPolling.prototype.poll = function() {
     clearTimeout(timeout);
     if (err) return self.emit('error', err);
 
+    response[0] = response[0].replace(/^\?[\d]+\?/, '');
+
     if (response[0] === '7') {
       self.emit('error', new Error('Error: ' + JSON.stringify(response)));
     }

@@ -22,7 +22,7 @@ function Benchmark() {
   this.messageTimeout = 2 * 1000;
 
   this.connectedCounter = 0;
-  this.batchs = {};
+  this.batches = {};
   this.responseTimes = {};
 }
 
@@ -41,8 +41,6 @@ Benchmark.prototype.start = function() {
   for (var i = 0; i < this.maxClients; i++) {
     this.connectClient();
   }
-
-  setInterval(this.analyze.bind(this), this.interval * 1000);
 };
 
 Benchmark.prototype.connectClient = function() {
@@ -60,8 +58,8 @@ Benchmark.prototype.handleMessage = function(client, message) {
   var batchId = message.args[0].batch;
   var latency = Date.now() - time;
 
-  var batch = this.batchs[batchId];
-  if (!batch)) {
+  var batch = this.batches[batchId];
+  if (!batch) {
     batch = this.batches[batchId] = {
       connected: this.connectedCounter,
       responseTimes: [],
@@ -81,16 +79,17 @@ Benchmark.prototype.analyzeBatch = function(batch) {
       : 1;
   });
 
-  var index = Math.floor(this.responseTimes.length * this.percentile / 100);
-  var responseTime = this.responseTimes[index];
-  var errorRate = ((this.errorCounter / this.clients.length) * 100).toFixed(2);
+  var index = Math.floor(batch.responseTimes.length * this.percentile / 100);
+  var responseTime = batch.responseTimes[index];
+  //var errorRate = ((batch.errorCounter / this.clients.length) * 100).toFixed(2);
 
   console.error(
     '%s percentile response time for %d messages: %d (%d% error rate)',
     this.percentile,
-    this.messageCounter,
+    batch.responseTimes.length,
     responseTime,
-    errorRate
+    undefined
+    //errorRate
   );
 
   this.responseTimes = [];
@@ -106,12 +105,11 @@ Benchmark.prototype.handleError = function(client, error) {
   var index = this.clients.indexOf(client);
   if (index === -1) return;
 
+  console.error(error.message);
+
   this.clients.splice(index, 1);
   this.connectedCounter--;
-  //this.errorCounter++;
   this.connectClient();
-
-  //console.error('error: %s', error.message);
 
   client.disconnect();
 };
