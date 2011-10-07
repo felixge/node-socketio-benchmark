@@ -11,6 +11,7 @@ function WebSocket() {
   this.connection = null;
   this.port       = null;
   this.host       = null;
+  this.transport  = 'websocket';
 }
 
 WebSocket.create = function(port, host) {
@@ -23,6 +24,8 @@ WebSocket.create = function(port, host) {
 
 WebSocket.prototype.connect = function() {
   var self = this;
+
+  io.transports = [this.transport];
 
   this.connection = io.connect(
     'http://' + this.host + ':' + this.port,
