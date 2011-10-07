@@ -19,7 +19,7 @@ function Benchmark() {
   this.interval       = null;
   this.transport      = null;
   this.percentile     = null;
-  this.messageTimeout = 2 * 1000;
+  this.messageTimeout = 5 * 1000;
 
   this.batches        = {};
   this.responseTimes  = {};
