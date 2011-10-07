@@ -2,6 +2,7 @@ var port            = 3030;
 var interval        = 1000;
 var duration        = 10 * 1000;
 var receivedCounter = 0;
+var batch           = 0;
 var sockets         = [];
 var io              = require('socket.io').listen(port);
 
@@ -17,10 +18,15 @@ io.sockets.on('connection', function (socket) {
 });
 
 setInterval(function() {
+  batch++;
+
+  var time = Date.now();
+
   sockets.forEach(function(socket) {
     socket.emit('chat.msg', {
       msg: 'JavaScript motherfucker. Do you speak it!',
-      time: Date.now(),
+      time: time,
+      batch: batch
     });
   });
 }, interval);

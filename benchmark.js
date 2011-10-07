@@ -8,7 +8,7 @@ options
   .option('-h, --host [host]', 'The host to connect to [localhost]', 'localhost')
   .option('-c, --clients [clients]', 'The number of total clients', 10)
   .option('-m, --messages [messages]', 'The number of messages to send per sec [0.1]', 0.1)
-  .option('-i, --interval [interval]', 'The interval in seconds to accumlate stats [10]', 10)
+  .option('-i, --interval [interval]', 'The interval in seconds to accumlate stats [1]', 1)
   .option('-t, --transport [transport]', 'The transport type to use by the client [xhr-polling,websocket]', 'xhr-polling')
   .option('-%, --percentile [percentile]', 'The percentile to calculate latency for [95]', 95)
   .parse(process.argv);
@@ -18,9 +18,12 @@ function Benchmark() {
   this.maxClients = null;
   this.interval = null;
   this.transport = null;
-  this.connectedCounter = 0;
   this.percentile = null;
-  this.responseTimes = [];
+  this.messageTimeout = 2 * 1000;
+
+  this.connectedCounter = 0;
+  this.batchs = {};
+  this.responseTimes = {};
 }
 
 Benchmark.create = function(options) {
@@ -38,6 +41,8 @@ Benchmark.prototype.start = function() {
   for (var i = 0; i < this.maxClients; i++) {
     this.connectClient();
   }
+
+  setInterval(this.analyze.bind(this), this.interval * 1000);
 };
 
 Benchmark.prototype.connectClient = function() {
@@ -52,32 +57,45 @@ Benchmark.prototype.connectClient = function() {
 
 Benchmark.prototype.handleMessage = function(client, message) {
   var time = message.args[0].time;
+  var batchId = message.args[0].batch;
   var latency = Date.now() - time;
-  this.responseTimes.push(latency);
 
-  if (this.responseTimes.length === this.clients.length) {
-    this.analyze();
-    this.responseTimes = [];
+  var batch = this.batchs[batchId];
+  if (!batch)) {
+    batch = this.batches[batchId] = {
+      connected: this.connectedCounter,
+      responseTimes: [],
+    };
+
+    batch.timeout = setTimeout(this.analyzeBatch.bind(this, batch), this.messageTimeout);
   }
+
+  batch.responseTimes.push(latency);
 };
 
-Benchmark.prototype.analyze = function() {
-  this.responseTimes.sort(function(a, b) {
+Benchmark.prototype.analyzeBatch = function(batch) {
+  batch.responseTimes.sort(function(a, b) {
     if (a === b) return 0;
     return (a < b)
       ? -1
       : 1;
   });
 
-  var index = Math.ceil(this.responseTimes.length * this.percentile / 100);
+  var index = Math.floor(this.responseTimes.length * this.percentile / 100);
   var responseTime = this.responseTimes[index];
+  var errorRate = ((this.errorCounter / this.clients.length) * 100).toFixed(2);
 
   console.error(
-    '%s percentile response time for %d clients: %d',
+    '%s percentile response time for %d messages: %d (%d% error rate)',
     this.percentile,
-    this.clients.length,
-    responseTime
+    this.messageCounter,
+    responseTime,
+    errorRate
   );
+
+  this.responseTimes = [];
+  this.errorCounter = 0;
+  this.messageCounter = 0;
 };
 
 Benchmark.prototype.handleConnect = function(client, message) {
@@ -86,7 +104,16 @@ Benchmark.prototype.handleConnect = function(client, message) {
 
 Benchmark.prototype.handleError = function(client, error) {
   var index = this.clients.indexOf(client);
-  console.error('Error from client %d: %s', index, error);
+  if (index === -1) return;
+
+  this.clients.splice(index, 1);
+  this.connectedCounter--;
+  //this.errorCounter++;
+  this.connectClient();
+
+  //console.error('error: %s', error.message);
+
+  client.disconnect();
 };
 
 var benchmark = Benchmark.create(options);

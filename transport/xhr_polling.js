@@ -13,10 +13,13 @@ function XhrPolling() {
   this.host = null;
   this.connecting = false;
   this.connected = false;
+  this.pollTimeout = 20 * 1000;
+  this.connectionTimeout = 3 * 1000;
   this.sessionId = null;
   this.transport = 'xhr-polling';
 
   this._request = null;
+  this._requestTimeout = null;
 }
 
 XhrPolling.create = function(port, host) {
@@ -31,11 +34,25 @@ XhrPolling.prototype.connect = function() {
   this.handshake();
 };
 
+XhrPolling.prototype.disconnect = function() {
+  try {
+    this._request.destroy();
+  } catch (err) {
+    this.emit('error', err);
+  }
+};
+
 XhrPolling.prototype.handshake = function() {
   var self = this;
+  var timeout = setTimeout(function() {
+    self.emit('error', new Error('Connection timeout'));
+  }, this.connectionTimeout);
+
   this.request(function(err, response) {
+    clearTimeout(timeout);
     if (err) return self.emit('error', err);
 
+    self.connected = true;
     self.sessionId = response[0];
     self.poll();
   });
@@ -43,7 +60,12 @@ XhrPolling.prototype.handshake = function() {
 
 XhrPolling.prototype.poll = function() {
   var self = this;
+  var timeout = setTimeout(function() {
+    self.emit('error', new Error('Poll timeout'));
+  }, this.pollTimeout);
+
   this.request(function(err, response) {
+    clearTimeout(timeout);
     if (err) return self.emit('error', err);
 
     if (response[0] === '7') {
