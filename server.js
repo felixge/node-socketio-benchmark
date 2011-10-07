@@ -19,7 +19,8 @@ io.sockets.on('connection', function (socket) {
 setInterval(function() {
   sockets.forEach(function(socket) {
     socket.emit('chat.msg', {
-      msg: 'JavaScript motherfucker. Do you speak it!'
+      msg: 'JavaScript motherfucker. Do you speak it!',
+      time: Date.now(),
     });
   });
 }, interval);
