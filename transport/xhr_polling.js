@@ -90,7 +90,12 @@ XhrPolling.prototype.poll = function() {
 
     // Event
     if (/5$/.test(type)) {
-      var message = JSON.parse(response[3]);
+      try{
+        var message = JSON.parse(response[3]);
+      } catch (err) {
+        self.emit(new Error('Could not parse response: ' + JSON.stringify(response)));
+        return;
+      }
       self.emit('message', message);
       self.poll();
       return;
