@@ -30,16 +30,12 @@ WebSocket.prototype.connect = function() {
     {'force new connection': true}
   );
 
-  this.connection.on('error', this.handleError.bind(this));
+  this.connection
+    .on('connection', function() { self.emit('connection'); })
+    .on('chat.msg', function(msg) { self.emit('message', {args: [msg]}); })
+    .on('error', this.handleError.bind(this));
+
   this.connection.socket.on('error', this.handleError.bind(this));
-
-  this.connection.on('connection', function() {
-    self.emit('connection');
-  });
-
-  this.connection.on('chat.msg', function(message) {
-    self.emit('message', message);
-  });
 }
 
 WebSocket.prototype.handleError = function(error) {
