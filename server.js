@@ -32,6 +32,6 @@ setInterval(function() {
 }, interval);
 
 setInterval(function() {
-  console.log('Received %d requests per second', receivedCounter / duration * 1000);
+  console.log('Received %d messages per second', receivedCounter / duration * 1000);
   receivedCounter = 0;
 }, duration);
