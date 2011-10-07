@@ -6,6 +6,12 @@ var batch           = 0;
 var sockets         = [];
 var io              = require('socket.io').listen(port);
 
+io.server.on('connection', function(socket) {
+  socket.on('error', function(err) {
+    console.error(err);
+  });
+});
+
 io.configure(function() {
   io.set('log level', 1);
 });
