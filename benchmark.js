@@ -1,6 +1,7 @@
 var options = require('commander');
 var transports = {
   'xhr-polling': require('./transport/xhr_polling'),
+  'websocket': require('./transport/websocket')
 };
 options
   .option('-p, --port [port]', 'The port to connect to [3030]', 3030)
