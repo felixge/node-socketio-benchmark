@@ -9,21 +9,21 @@ util.inherits(XhrPolling, EventEmitter);
 function XhrPolling() {
   EventEmitter.call(this);
 
-  this.port = null;
-  this.host = null;
-  this.connecting = false;
-  this.connected = false;
-  this.pollTimeout = 20 * 1000;
+  this.port              = null;
+  this.host              = null;
+  this.connecting        = false;
+  this.connected         = false;
+  this.pollTimeout       = 20 * 1000;
   this.connectionTimeout = 3 * 1000;
-  this.sessionId = null;
-  this.transport = 'xhr-polling';
+  this.sessionId         = null;
+  this.transport         = 'xhr-polling';
 
-  this._request = null;
-  this._requestTimeout = null;
+  this._request          = null;
+  this._requestTimeout   = null;
 }
 
 XhrPolling.create = function(port, host) {
-  var instance = new this();
+  var instance  = new this();
   instance.port = port;
   instance.host = host;
   return instance;
@@ -40,11 +40,6 @@ XhrPolling.prototype.disconnect = function() {
   } catch (err) {
     this.emit('error', err);
   }
-
-  //console.error('disconnecting');
-  //this.request('?disconnect', function() {
-    //console.error(arguments);
-  //});
 };
 
 XhrPolling.prototype.handshake = function() {
@@ -81,21 +76,24 @@ XhrPolling.prototype.poll = function() {
 
     // Connected
     if (type === '1') {
-      self.connected = true;
+      self.connected  = true;
       self.connecting = false;
       self.emit('connect');
       self.poll();
+
       return;
     }
 
-    // Event
+    // Event (wtf, why does the regex above not fix this?)
     if (/5$/.test(type)) {
       try{
         var message = JSON.parse(response[3]);
       } catch (err) {
         self.emit(new Error('Could not parse response: ' + JSON.stringify(response)));
+
         return;
       }
+
       self.emit('message', message);
       self.poll();
       return;
@@ -145,9 +143,9 @@ XhrPolling.prototype.handleResponse = function(cb, res) {
       var message = [];
 
       for (var i = 0; i < 3; i++) {
-        var end = data.indexOf(':');
+        var end    = data.indexOf(':');
         message[i] = data.substr(0, end);
-        data = data.substr(end + 1);
+        data       = data.substr(end + 1);
       }
 
       message[3] = data;

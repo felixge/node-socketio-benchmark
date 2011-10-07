@@ -14,24 +14,24 @@ options
   .parse(process.argv);
 
 function Benchmark() {
-  this.clients = [];
-  this.maxClients = null;
-  this.interval = null;
-  this.transport = null;
-  this.percentile = null;
+  this.clients        = [];
+  this.maxClients     = null;
+  this.interval       = null;
+  this.transport      = null;
+  this.percentile     = null;
   this.messageTimeout = 2 * 1000;
 
-  this.batches = {};
-  this.responseTimes = {};
+  this.batches        = {};
+  this.responseTimes  = {};
 }
 
 Benchmark.create = function(options) {
-  var instance = new Benchmark();
+  var instance        = new Benchmark();
   instance.maxClients = options.clients;
-  instance.host = options.host;
-  instance.port = options.port;
-  instance.interval = options.interval;
-  instance.transport = options.transport;
+  instance.host       = options.host;
+  instance.port       = options.port;
+  instance.interval   = options.interval;
+  instance.transport  = options.transport;
   instance.percentile = options.percentile;
   return instance;
 };
@@ -48,13 +48,13 @@ Benchmark.prototype.connectClient = function() {
   client
     .on('connect', this.handleConnect.bind(this, client))
     .on('message', this.handleMessage.bind(this, client))
-    .on('error', this.handleError.bind(this, client));
+    .on('error',   this.handleError.bind(this, client));
   this.clients.push(client);
 };
 
 Benchmark.prototype.handleMessage = function(client, message) {
-  var time = message.args[0].time;
-  var size = message.args[0].size;
+  var time    = message.args[0].time;
+  var size    = message.args[0].size;
   var batchId = message.args[0].batch;
   var latency = Date.now() - time;
 
@@ -79,9 +79,10 @@ Benchmark.prototype.analyzeBatch = function(batch) {
       : 1;
   });
 
-  var index = Math.floor(batch.responseTimes.length * this.percentile / 100);
+  var responses    = batch.responseTimes.length;
+  var index        = Math.floor(responses * this.percentile / 100);
   var responseTime = batch.responseTimes[index];
-  var errorRate = ((batch.size - batch.responseTimes.length) / batch.size * 100).toFixed(2);
+  var errorRate    = ((batch.size - responses) / batch.size * 100).toFixed(2);
 
   console.error(
     '%s percentile response time for %d messages: %d (%d% error rate)',
@@ -91,8 +92,8 @@ Benchmark.prototype.analyzeBatch = function(batch) {
     errorRate
   );
 
-  this.responseTimes = [];
-  this.errorCounter = 0;
+  this.responseTimes  = [];
+  this.errorCounter   = 0;
   this.messageCounter = 0;
 };
 
